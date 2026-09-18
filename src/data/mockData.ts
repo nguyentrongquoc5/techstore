@@ -148,16 +148,21 @@ export const users: User[] = [
 const brands = ['Apple', 'Samsung', 'Dell', 'ASUS', 'Lenovo', 'HP', 'Xiaomi', 'Logitech', 'Sony', 'LG', 'Acer', 'MSI', 'Razer', 'Keychron', 'Anker'];
 
 const productImages = [
-  'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400',
-  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
-  'https://images.unsplash.com/photo-1525547717930-6c3b6e4b0e0a?w=400',
-  'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=400',
-  'https://images.unsplash.com/photo-1588872657578-7b1f5d1f8f5f?w=400',
-  'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400',
-  'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=400',
-  'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400',
-  'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=400',
-  'https://images.unsplash.com/photo-1625948515291-69613efd103f?w=400',
+  'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1587829741301-dc430b73f806?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&w=400&q=80',
 ];
 
 function generateProducts(): Product[] {
