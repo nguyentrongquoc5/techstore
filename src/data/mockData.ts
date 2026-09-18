@@ -145,106 +145,140 @@ export const users: User[] = [
   },
 ];
 
-const brands = ['Apple', 'Samsung', 'Dell', 'ASUS', 'Lenovo', 'HP', 'Xiaomi', 'Logitech', 'Sony', 'LG', 'Acer', 'MSI', 'Razer', 'Keychron', 'Anker'];
+const IMG = {
+  laptop1: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=600&q=80',
+  laptop2: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
+  laptop3: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80',
+  laptop4: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?auto=format&fit=crop&w=600&q=80',
+  phone1: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80',
+  phone2: 'https://images.unsplash.com/photo-1592890288564-76628a0b0506?auto=format&fit=crop&w=600&q=80',
+  phone3: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+  tablet1: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80',
+  tablet2: 'https://images.unsplash.com/photo-1561154464-82e9adf32764?auto=format&fit=crop&w=600&q=80',
+  monitor1: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80',
+  monitor2: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=600&q=80',
+  keyboard1: 'https://images.unsplash.com/photo-1587829741301-dc430b73f806?auto=format&fit=crop&w=600&q=80',
+  keyboard2: 'https://images.unsplash.com/photo-1618384887929-48ec6c7275d0?auto=format&fit=crop&w=600&q=80',
+  mouse1: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=600&q=80',
+  mouse2: 'https://images.unsplash.com/photo-1615660139460-8d35f4c5d8c5?auto=format&fit=crop&w=600&q=80',
+  headphone1: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+  headphone2: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=600&q=80',
+  webcam1: 'https://images.unsplash.com/photo-1587826080692-f439cd0b70da?auto=format&fit=crop&w=600&q=80',
+  accessory1: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=600&q=80',
+  accessory2: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=600&q=80',
+};
 
-const productImages = [
-  'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1587829741301-dc430b73f806?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=400&q=80',
-  'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&w=400&q=80',
-];
-
-function generateProducts(): Product[] {
-  const products: Product[] = [];
-  const names: Record<string, string[]> = {
-    'cat-1': ['MacBook Air M3', 'MacBook Pro 14"', 'Dell XPS 13', 'ASUS ROG Zephyrus', 'Lenovo ThinkPad X1', 'HP Spectre x360', 'Acer Swift 5', 'MSI Prestige 14'],
-    'cat-2': ['iPhone 16 Pro', 'Samsung Galaxy S25', 'Xiaomi 15 Ultra', 'iPhone 15', 'Samsung Galaxy A55', 'Google Pixel 9', 'OPPO Find X8', 'Vivo X200'],
-    'cat-3': ['iPad Pro M4', 'Samsung Galaxy Tab S10', 'iPad Air', 'Xiaomi Pad 7', 'Lenovo Tab P12', 'Amazon Fire HD'],
-    'cat-4': ['LG UltraGear 27"', 'Samsung Odyssey G7', 'Dell UltraSharp 32"', 'ASUS ProArt', 'BenQ PD2700U', 'ViewSonic VX2768'],
-    'cat-5': ['Keychron K8 Pro', 'Logitech MX Keys', 'Razer BlackWidow V4', 'Corsair K70', 'Akko 3068B', 'Leopold FC750R'],
-    'cat-6': ['Logitech MX Master 3S', 'Razer DeathAdder V3', 'Logitech G Pro X', 'Apple Magic Mouse', 'SteelSeries Aerox 5', 'Zowie EC2-C'],
-    'cat-7': ['Sony WH-1000XM5', 'AirPods Pro 2', 'Samsung Galaxy Buds3', 'Bose QuietComfort', 'Logitech G Pro X 2', 'Razer BlackShark V2'],
-    'cat-8': ['Logitech C920e', 'Razer Kiyo Pro', 'Elgato Facecam', 'Microsoft LifeCam', 'OBSBOT Tiny 2'],
-    'cat-9': ['Anker 735 Charger', 'Apple MagSafe', 'Samsung 45W Adapter', 'Baseus Hub USB-C', 'UGREEN Cable', 'Spigen Case'],
+function p(
+  id: number,
+  name: string,
+  catId: string,
+  catName: string,
+  brand: string,
+  price: number,
+  salePrice: number | undefined,
+  stock: number,
+  rating: number,
+  reviewCount: number,
+  images: string[],
+  isFeatured: boolean,
+  isBestSeller: boolean,
+  month: number,
+  day: number
+): Product {
+  return {
+    id: `prod-${id}`,
+    name,
+    slug: `${catName.toLowerCase().replace(/\s+/g, '-')}-${id}`,
+    categoryId: catId,
+    categoryName: catName,
+    brand,
+    price,
+    salePrice,
+    stock,
+    rating,
+    reviewCount,
+    description: `${name} là sản phẩm công nghệ cao cấp thuộc danh mục ${catName}. Thiết kế hiện đại, hiệu năng mạnh mẽ, phù hợp cho công việc và giải trí.`,
+    specs: {
+      'Thương hiệu': brand,
+      'Bảo hành': '12 tháng',
+      'Xuất xứ': 'Chính hãng',
+      'Tình trạng': 'Mới 100%',
+    },
+    images,
+    isFeatured,
+    isBestSeller,
+    status: 'active',
+    createdAt: new Date(2024, month, day).toISOString(),
   };
-
-  let id = 1;
-  for (const cat of categories) {
-    const catNames = names[cat.id] || ['Sản phẩm mẫu'];
-    catNames.forEach((name, idx) => {
-      const price = Math.floor(Math.random() * 40000000) + 500000;
-      const hasSale = Math.random() > 0.4;
-      const salePrice = hasSale ? Math.floor(price * (0.75 + Math.random() * 0.2)) : undefined;
-      products.push({
-        id: `prod-${id}`,
-        name: `${name} ${idx + 1 > 1 ? `(${idx + 1})` : ''}`.trim(),
-        slug: `${cat.slug}-${id}`,
-        categoryId: cat.id,
-        categoryName: cat.name,
-        brand: brands[Math.floor(Math.random() * brands.length)],
-        price,
-        salePrice,
-        stock: Math.floor(Math.random() * 50) + 5,
-        rating: Number((3.5 + Math.random() * 1.5).toFixed(1)),
-        reviewCount: Math.floor(Math.random() * 500) + 10,
-        description: `${name} là sản phẩm công nghệ cao cấp thuộc danh mục ${cat.name}. Thiết kế hiện đại, hiệu năng mạnh mẽ, phù hợp cho công việc và giải trí.`,
-        specs: {
-          'Thương hiệu': brands[Math.floor(Math.random() * brands.length)],
-          'Bảo hành': '12 tháng',
-          'Xuất xứ': 'Chính hãng',
-          'Tình trạng': 'Mới 100%',
-        },
-        images: [productImages[id % productImages.length], productImages[(id + 1) % productImages.length]],
-        isFeatured: Math.random() > 0.6,
-        isBestSeller: Math.random() > 0.7,
-        status: 'active',
-        createdAt: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString(),
-      });
-      id++;
-    });
-  }
-
-  // Ensure at least 30
-  while (products.length < 32) {
-    const cat = categories[products.length % categories.length];
-    const price = Math.floor(Math.random() * 20000000) + 300000;
-    products.push({
-      id: `prod-${id}`,
-      name: `Sản phẩm ${cat.name} ${id}`,
-      slug: `${cat.slug}-${id}`,
-      categoryId: cat.id,
-      categoryName: cat.name,
-      brand: brands[Math.floor(Math.random() * brands.length)],
-      price,
-      salePrice: Math.random() > 0.5 ? Math.floor(price * 0.85) : undefined,
-      stock: Math.floor(Math.random() * 40) + 3,
-      rating: Number((3.8 + Math.random() * 1.2).toFixed(1)),
-      reviewCount: Math.floor(Math.random() * 200) + 5,
-      description: `Sản phẩm chất lượng cao từ danh mục ${cat.name}.`,
-      specs: { 'Bảo hành': '12 tháng', 'Tình trạng': 'Mới' },
-      images: [productImages[id % productImages.length]],
-      isFeatured: Math.random() > 0.5,
-      isBestSeller: Math.random() > 0.6,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-    });
-    id++;
-  }
-  return products;
 }
 
-export const products: Product[] = generateProducts();
+export const products: Product[] = [
+  p(1, 'MacBook Air M3', 'cat-1', 'Laptop', 'Apple', 28990000, 26990000, 25, 4.8, 320, [IMG.laptop1, IMG.laptop2], true, true, 1, 5),
+  p(2, 'MacBook Pro 14"', 'cat-1', 'Laptop', 'Apple', 45990000, 42990000, 15, 4.9, 210, [IMG.laptop2, IMG.laptop1], true, true, 1, 12),
+  p(3, 'Dell XPS 13', 'cat-1', 'Laptop', 'Dell', 32990000, undefined, 18, 4.6, 145, [IMG.laptop3, IMG.laptop4], true, false, 2, 3),
+  p(4, 'ASUS ROG Zephyrus', 'cat-1', 'Laptop', 'ASUS', 45990000, 42990000, 12, 4.7, 180, [IMG.laptop4, IMG.laptop3], true, true, 2, 15),
+  p(5, 'Lenovo ThinkPad X1', 'cat-1', 'Laptop', 'Lenovo', 35990000, 33990000, 20, 4.5, 98, [IMG.laptop1, IMG.laptop3], false, false, 3, 8),
+  p(6, 'HP Spectre x360', 'cat-1', 'Laptop', 'HP', 34590000, undefined, 14, 4.4, 76, [IMG.laptop2, IMG.laptop4], false, true, 3, 20),
+  p(7, 'Acer Swift 5', 'cat-1', 'Laptop', 'Acer', 18990000, 16990000, 30, 4.3, 112, [IMG.laptop3, IMG.laptop1], false, false, 4, 2),
+  p(8, 'MSI Prestige 14', 'cat-1', 'Laptop', 'MSI', 27990000, 25990000, 16, 4.5, 89, [IMG.laptop4, IMG.laptop2], true, false, 4, 18),
+
+  p(9, 'iPhone 16 Pro', 'cat-2', 'Điện thoại', 'Apple', 28990000, 27990000, 40, 4.9, 520, [IMG.phone1, IMG.phone2], true, true, 5, 1),
+  p(10, 'Samsung Galaxy S25', 'cat-2', 'Điện thoại', 'Samsung', 24990000, 22990000, 35, 4.7, 410, [IMG.phone2, IMG.phone3], true, true, 5, 10),
+  p(11, 'Xiaomi 15 Ultra', 'cat-2', 'Điện thoại', 'Xiaomi', 19990000, 17990000, 28, 4.6, 265, [IMG.phone3, IMG.phone1], true, false, 6, 5),
+  p(12, 'iPhone 15', 'cat-2', 'Điện thoại', 'Apple', 19990000, 18990000, 45, 4.8, 680, [IMG.phone1, IMG.phone3], false, true, 6, 15),
+  p(13, 'Samsung Galaxy A55', 'cat-2', 'Điện thoại', 'Samsung', 9990000, 8990000, 50, 4.4, 190, [IMG.phone2, IMG.phone1], false, false, 7, 3),
+  p(14, 'Google Pixel 9', 'cat-2', 'Điện thoại', 'Google', 18990000, undefined, 22, 4.5, 140, [IMG.phone3, IMG.phone2], false, false, 7, 20),
+  p(15, 'OPPO Find X8', 'cat-2', 'Điện thoại', 'OPPO', 16990000, 15990000, 26, 4.3, 95, [IMG.phone1, IMG.phone2], false, false, 8, 8),
+  p(16, 'Vivo X200', 'cat-2', 'Điện thoại', 'Vivo', 15990000, 14990000, 24, 4.2, 78, [IMG.phone2, IMG.phone3], false, false, 8, 22),
+
+  p(17, 'iPad Pro M4', 'cat-3', 'Máy tính bảng', 'Apple', 25990000, 24990000, 20, 4.8, 230, [IMG.tablet1, IMG.tablet2], true, true, 2, 10),
+  p(18, 'Samsung Galaxy Tab S10', 'cat-3', 'Máy tính bảng', 'Samsung', 18990000, 16990000, 18, 4.6, 150, [IMG.tablet2, IMG.tablet1], true, false, 3, 5),
+  p(19, 'iPad Air', 'cat-3', 'Máy tính bảng', 'Apple', 15990000, undefined, 30, 4.7, 310, [IMG.tablet1, IMG.tablet2], false, true, 4, 12),
+  p(20, 'Xiaomi Pad 7', 'cat-3', 'Máy tính bảng', 'Xiaomi', 8990000, 7990000, 35, 4.4, 120, [IMG.tablet2, IMG.tablet1], false, false, 5, 8),
+  p(21, 'Lenovo Tab P12', 'cat-3', 'Máy tính bảng', 'Lenovo', 7990000, 6990000, 22, 4.2, 65, [IMG.tablet1, IMG.tablet2], false, false, 6, 14),
+  p(22, 'Amazon Fire HD', 'cat-3', 'Máy tính bảng', 'Amazon', 3490000, 2990000, 40, 4.0, 200, [IMG.tablet2, IMG.tablet1], false, false, 7, 1),
+
+  p(23, 'LG UltraGear 27"', 'cat-4', 'Màn hình', 'LG', 7990000, 6990000, 25, 4.6, 180, [IMG.monitor1, IMG.monitor2], true, true, 1, 20),
+  p(24, 'Samsung Odyssey G7', 'cat-4', 'Màn hình', 'Samsung', 12990000, 10990000, 15, 4.7, 145, [IMG.monitor2, IMG.monitor1], true, true, 2, 8),
+  p(25, 'Dell UltraSharp 32"', 'cat-4', 'Màn hình', 'Dell', 14990000, undefined, 12, 4.5, 90, [IMG.monitor1, IMG.monitor2], false, false, 3, 15),
+  p(26, 'ASUS ProArt', 'cat-4', 'Màn hình', 'ASUS', 11990000, 10990000, 10, 4.4, 55, [IMG.monitor2, IMG.monitor1], false, false, 4, 5),
+  p(27, 'BenQ PD2700U', 'cat-4', 'Màn hình', 'BenQ', 9990000, 8990000, 14, 4.3, 70, [IMG.monitor1, IMG.monitor2], false, false, 5, 18),
+  p(28, 'ViewSonic VX2768', 'cat-4', 'Màn hình', 'ViewSonic', 5990000, 5490000, 20, 4.2, 48, [IMG.monitor2, IMG.monitor1], false, false, 6, 2),
+
+  p(29, 'Keychron K8 Pro', 'cat-5', 'Bàn phím', 'Keychron', 2490000, 2190000, 40, 4.7, 260, [IMG.keyboard1, IMG.keyboard2], true, true, 1, 8),
+  p(30, 'Logitech MX Keys', 'cat-5', 'Bàn phím', 'Logitech', 2990000, undefined, 35, 4.6, 190, [IMG.keyboard2, IMG.keyboard1], true, false, 2, 14),
+  p(31, 'Razer BlackWidow V4', 'cat-5', 'Bàn phím', 'Razer', 3990000, 3490000, 28, 4.5, 175, [IMG.keyboard1, IMG.keyboard2], false, true, 3, 6),
+  p(32, 'Corsair K70', 'cat-5', 'Bàn phím', 'Corsair', 3590000, 3290000, 22, 4.4, 130, [IMG.keyboard2, IMG.keyboard1], false, false, 4, 20),
+  p(33, 'Akko 3068B', 'cat-5', 'Bàn phím', 'Akko', 1890000, 1690000, 45, 4.5, 210, [IMG.keyboard1, IMG.keyboard2], false, true, 5, 11),
+  p(34, 'Leopold FC750R', 'cat-5', 'Bàn phím', 'Leopold', 3290000, undefined, 18, 4.6, 95, [IMG.keyboard2, IMG.keyboard1], false, false, 6, 25),
+
+  p(35, 'Logitech MX Master 3S', 'cat-6', 'Chuột', 'Logitech', 2490000, 2290000, 50, 4.8, 420, [IMG.mouse1, IMG.mouse2], true, true, 1, 15),
+  p(36, 'Razer DeathAdder V3', 'cat-6', 'Chuột', 'Razer', 1890000, 1690000, 40, 4.6, 280, [IMG.mouse2, IMG.mouse1], true, true, 2, 7),
+  p(37, 'Logitech G Pro X', 'cat-6', 'Chuột', 'Logitech', 2190000, undefined, 32, 4.5, 195, [IMG.mouse1, IMG.mouse2], false, false, 3, 12),
+  p(38, 'Apple Magic Mouse', 'cat-6', 'Chuột', 'Apple', 2290000, 1990000, 30, 4.2, 160, [IMG.mouse2, IMG.mouse1], false, false, 4, 3),
+  p(39, 'SteelSeries Aerox 5', 'cat-6', 'Chuột', 'SteelSeries', 2590000, 2290000, 25, 4.5, 110, [IMG.mouse1, IMG.mouse2], false, true, 5, 19),
+  p(40, 'Zowie EC2-C', 'cat-6', 'Chuột', 'Zowie', 1790000, undefined, 20, 4.7, 145, [IMG.mouse2, IMG.mouse1], false, false, 6, 9),
+
+  p(41, 'Sony WH-1000XM5', 'cat-7', 'Tai nghe', 'Sony', 8490000, 7990000, 30, 4.9, 510, [IMG.headphone1, IMG.headphone2], true, true, 1, 22),
+  p(42, 'AirPods Pro 2', 'cat-7', 'Tai nghe', 'Apple', 5990000, 5490000, 45, 4.8, 680, [IMG.headphone2, IMG.headphone1], true, true, 2, 5),
+  p(43, 'Samsung Galaxy Buds3', 'cat-7', 'Tai nghe', 'Samsung', 3990000, 3490000, 38, 4.5, 240, [IMG.headphone1, IMG.headphone2], false, false, 3, 18),
+  p(44, 'Bose QuietComfort', 'cat-7', 'Tai nghe', 'Bose', 7990000, undefined, 20, 4.7, 175, [IMG.headphone2, IMG.headphone1], true, false, 4, 10),
+  p(45, 'Logitech G Pro X 2', 'cat-7', 'Tai nghe', 'Logitech', 3490000, 2990000, 28, 4.4, 130, [IMG.headphone1, IMG.headphone2], false, true, 5, 6),
+  p(46, 'Razer BlackShark V2', 'cat-7', 'Tai nghe', 'Razer', 2490000, 2190000, 35, 4.3, 200, [IMG.headphone2, IMG.headphone1], false, false, 6, 28),
+
+  p(47, 'Logitech C920e', 'cat-8', 'Webcam', 'Logitech', 1890000, 1690000, 40, 4.5, 320, [IMG.webcam1, IMG.monitor1], true, true, 2, 12),
+  p(48, 'Razer Kiyo Pro', 'cat-8', 'Webcam', 'Razer', 3490000, 2990000, 18, 4.4, 95, [IMG.webcam1, IMG.monitor2], false, false, 3, 8),
+  p(49, 'Elgato Facecam', 'cat-8', 'Webcam', 'Elgato', 4990000, undefined, 12, 4.6, 80, [IMG.webcam1, IMG.monitor1], true, false, 4, 15),
+  p(50, 'Microsoft LifeCam', 'cat-8', 'Webcam', 'Microsoft', 990000, 790000, 50, 4.1, 150, [IMG.webcam1, IMG.monitor2], false, false, 5, 2),
+  p(51, 'OBSBOT Tiny 2', 'cat-8', 'Webcam', 'OBSBOT', 5990000, 5490000, 10, 4.5, 45, [IMG.webcam1, IMG.monitor1], false, true, 6, 20),
+
+  p(52, 'Anker 735 Charger', 'cat-9', 'Phụ kiện', 'Anker', 990000, 890000, 60, 4.7, 410, [IMG.accessory1, IMG.accessory2], true, true, 1, 10),
+  p(53, 'Apple MagSafe', 'cat-9', 'Phụ kiện', 'Apple', 1190000, undefined, 45, 4.5, 280, [IMG.accessory2, IMG.accessory1], false, true, 2, 18),
+  p(54, 'Samsung 45W Adapter', 'cat-9', 'Phụ kiện', 'Samsung', 690000, 590000, 55, 4.4, 190, [IMG.accessory1, IMG.accessory2], false, false, 3, 5),
+  p(55, 'Baseus Hub USB-C', 'cat-9', 'Phụ kiện', 'Baseus', 490000, 390000, 70, 4.3, 220, [IMG.accessory2, IMG.accessory1], false, true, 4, 12),
+  p(56, 'UGREEN Cable', 'cat-9', 'Phụ kiện', 'UGREEN', 190000, 150000, 100, 4.5, 350, [IMG.accessory1, IMG.accessory2], false, false, 5, 8),
+  p(57, 'Spigen Case', 'cat-9', 'Phụ kiện', 'Spigen', 350000, 290000, 80, 4.4, 175, [IMG.accessory2, IMG.accessory1], false, false, 6, 22),
+];
 
 export const orders: Order[] = [
   {
@@ -252,13 +286,11 @@ export const orders: Order[] = [
     userId: 'user-2',
     userName: 'Nguyễn Văn A',
     userEmail: 'user@gmail.com',
-    items: [
-      { productId: 'prod-1', productName: 'MacBook Air M3', productImage: productImages[0], price: 28990000, quantity: 1 },
-    ],
-    subtotal: 28990000,
+    items: [{ productId: 'prod-1', productName: 'MacBook Air M3', productImage: IMG.laptop1, price: 26990000, quantity: 1 }],
+    subtotal: 26990000,
     discount: 0,
     shippingFee: 0,
-    total: 28990000,
+    total: 26990000,
     status: 'delivered',
     paymentMethod: 'cod',
     shippingInfo: {
@@ -278,13 +310,13 @@ export const orders: Order[] = [
     userName: 'Trần Thị B',
     userEmail: 'tranthib@gmail.com',
     items: [
-      { productId: 'prod-9', productName: 'iPhone 16 Pro', productImage: productImages[1], price: 28990000, quantity: 1 },
-      { productId: 'prod-25', productName: 'AirPods Pro 2', productImage: productImages[2], price: 5990000, quantity: 1 },
+      { productId: 'prod-9', productName: 'iPhone 16 Pro', productImage: IMG.phone1, price: 27990000, quantity: 1 },
+      { productId: 'prod-42', productName: 'AirPods Pro 2', productImage: IMG.headphone2, price: 5490000, quantity: 1 },
     ],
-    subtotal: 34980000,
+    subtotal: 33480000,
     discount: 500000,
     shippingFee: 30000,
-    total: 34510000,
+    total: 33010000,
     status: 'shipping',
     paymentMethod: 'transfer',
     shippingInfo: {
@@ -303,13 +335,11 @@ export const orders: Order[] = [
     userId: 'user-4',
     userName: 'Lê Văn C',
     userEmail: 'levanc@gmail.com',
-    items: [
-      { productId: 'prod-15', productName: 'iPad Pro M4', productImage: productImages[3], price: 25990000, quantity: 1 },
-    ],
-    subtotal: 25990000,
+    items: [{ productId: 'prod-17', productName: 'iPad Pro M4', productImage: IMG.tablet1, price: 24990000, quantity: 1 }],
+    subtotal: 24990000,
     discount: 0,
     shippingFee: 0,
-    total: 25990000,
+    total: 24990000,
     status: 'processing',
     paymentMethod: 'cod',
     shippingInfo: {
@@ -328,13 +358,11 @@ export const orders: Order[] = [
     userId: 'user-2',
     userName: 'Nguyễn Văn A',
     userEmail: 'user@gmail.com',
-    items: [
-      { productId: 'prod-20', productName: 'LG UltraGear 27"', productImage: productImages[4], price: 7990000, quantity: 2 },
-    ],
-    subtotal: 15980000,
+    items: [{ productId: 'prod-23', productName: 'LG UltraGear 27"', productImage: IMG.monitor1, price: 6990000, quantity: 2 }],
+    subtotal: 13980000,
     discount: 200000,
     shippingFee: 50000,
-    total: 15830000,
+    total: 13830000,
     status: 'pending',
     paymentMethod: 'cod',
     shippingInfo: {
@@ -355,13 +383,13 @@ export const orders: Order[] = [
     userName: 'Hoàng Văn E',
     userEmail: 'hoangvane@gmail.com',
     items: [
-      { productId: 'prod-22', productName: 'Keychron K8 Pro', productImage: productImages[5], price: 2490000, quantity: 1 },
-      { productId: 'prod-24', productName: 'Logitech MX Master 3S', productImage: productImages[6], price: 2490000, quantity: 1 },
+      { productId: 'prod-29', productName: 'Keychron K8 Pro', productImage: IMG.keyboard1, price: 2190000, quantity: 1 },
+      { productId: 'prod-35', productName: 'Logitech MX Master 3S', productImage: IMG.mouse1, price: 2290000, quantity: 1 },
     ],
-    subtotal: 4980000,
+    subtotal: 4480000,
     discount: 0,
     shippingFee: 30000,
-    total: 5010000,
+    total: 4510000,
     status: 'delivered',
     paymentMethod: 'transfer',
     shippingInfo: {
@@ -380,13 +408,11 @@ export const orders: Order[] = [
     userId: 'user-7',
     userName: 'Vũ Thị F',
     userEmail: 'vuthif@gmail.com',
-    items: [
-      { productId: 'prod-27', productName: 'Sony WH-1000XM5', productImage: productImages[7], price: 8490000, quantity: 1 },
-    ],
-    subtotal: 8490000,
+    items: [{ productId: 'prod-41', productName: 'Sony WH-1000XM5', productImage: IMG.headphone1, price: 7990000, quantity: 1 }],
+    subtotal: 7990000,
     discount: 300000,
     shippingFee: 0,
-    total: 8190000,
+    total: 7690000,
     status: 'cancelled',
     paymentMethod: 'cod',
     shippingInfo: {
@@ -405,13 +431,11 @@ export const orders: Order[] = [
     userId: 'user-8',
     userName: 'Đặng Văn G',
     userEmail: 'dangvang@gmail.com',
-    items: [
-      { productId: 'prod-5', productName: 'ASUS ROG Zephyrus', productImage: productImages[8], price: 45990000, quantity: 1 },
-    ],
-    subtotal: 45990000,
+    items: [{ productId: 'prod-4', productName: 'ASUS ROG Zephyrus', productImage: IMG.laptop4, price: 42990000, quantity: 1 }],
+    subtotal: 42990000,
     discount: 1000000,
     shippingFee: 0,
-    total: 44990000,
+    total: 41990000,
     status: 'shipping',
     paymentMethod: 'transfer',
     shippingInfo: {
@@ -430,13 +454,11 @@ export const orders: Order[] = [
     userId: 'user-9',
     userName: 'Bùi Thị H',
     userEmail: 'buithih@gmail.com',
-    items: [
-      { productId: 'prod-30', productName: 'Anker 735 Charger', productImage: productImages[9], price: 990000, quantity: 3 },
-    ],
-    subtotal: 2970000,
+    items: [{ productId: 'prod-52', productName: 'Anker 735 Charger', productImage: IMG.accessory1, price: 890000, quantity: 3 }],
+    subtotal: 2670000,
     discount: 100000,
     shippingFee: 30000,
-    total: 2900000,
+    total: 2600000,
     status: 'delivered',
     paymentMethod: 'cod',
     shippingInfo: {
@@ -455,13 +477,11 @@ export const orders: Order[] = [
     userId: 'user-10',
     userName: 'Ngô Thị I',
     userEmail: 'ngothii@gmail.com',
-    items: [
-      { productId: 'prod-11', productName: 'Samsung Galaxy S25', productImage: productImages[0], price: 24990000, quantity: 1 },
-    ],
-    subtotal: 24990000,
+    items: [{ productId: 'prod-10', productName: 'Samsung Galaxy S25', productImage: IMG.phone2, price: 22990000, quantity: 1 }],
+    subtotal: 22990000,
     discount: 0,
     shippingFee: 0,
-    total: 24990000,
+    total: 22990000,
     status: 'processing',
     paymentMethod: 'transfer',
     shippingInfo: {
@@ -481,13 +501,13 @@ export const orders: Order[] = [
     userName: 'Nguyễn Văn A',
     userEmail: 'user@gmail.com',
     items: [
-      { productId: 'prod-28', productName: 'Logitech C920e', productImage: productImages[1], price: 1890000, quantity: 1 },
-      { productId: 'prod-23', productName: 'Razer BlackWidow V4', productImage: productImages[2], price: 3990000, quantity: 1 },
+      { productId: 'prod-47', productName: 'Logitech C920e', productImage: IMG.webcam1, price: 1690000, quantity: 1 },
+      { productId: 'prod-31', productName: 'Razer BlackWidow V4', productImage: IMG.keyboard1, price: 3490000, quantity: 1 },
     ],
-    subtotal: 5880000,
+    subtotal: 5180000,
     discount: 0,
     shippingFee: 30000,
-    total: 5910000,
+    total: 5210000,
     status: 'pending',
     paymentMethod: 'cod',
     shippingInfo: {
