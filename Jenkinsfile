@@ -5,7 +5,9 @@ pipeline {
     BACKEND_IMAGE  = 'techstore-api'
     FRONTEND_IMAGE = 'techstore-web'
     VITE_API_URL   = 'http://127.0.0.1:4000/api'
-    DOCKER_BIN     = 'C:\\Users\\Quoc\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+
+    DOCKER_BIN  = 'C:\\Users\\Quoc\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+    COMPOSE_BIN = 'C:\\Users\\Quoc\\.docker\\cli-plugins\\docker-compose.exe'
   }
 
   options {
@@ -27,8 +29,16 @@ pipeline {
         bat '''
           whoami
           "%DOCKER_BIN%" --version
-          "%DOCKER_BIN%" compose version
           "%DOCKER_BIN%" info
+          if errorlevel 1 exit /b 1
+
+          if not exist "%COMPOSE_BIN%" (
+            echo ERROR: Docker Compose executable not found.
+            exit /b 1
+          )
+
+          "%COMPOSE_BIN%" version
+          if errorlevel 1 exit /b 1
         '''
       }
     }
@@ -56,13 +66,13 @@ pipeline {
     stage('Deploy') {
       steps {
         bat '''
-          "%DOCKER_BIN%" compose config
+          "%COMPOSE_BIN%" config
           if errorlevel 1 exit /b 1
 
-          "%DOCKER_BIN%" compose down
+          "%COMPOSE_BIN%" down
           if errorlevel 1 exit /b 1
 
-          "%DOCKER_BIN%" compose up -d --build
+          "%COMPOSE_BIN%" up -d --build
           if errorlevel 1 exit /b 1
 
           timeout /t 10 /nobreak >nul
