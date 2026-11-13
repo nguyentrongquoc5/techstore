@@ -8,6 +8,7 @@ import categoryRoutes from './routes/categories.js';
 import orderRoutes from './routes/orders.js';
 import userRoutes from './routes/users.js';
 import statsRoutes from './routes/stats.js';
+import uploadRoutes from './routes/upload.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -27,6 +28,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.listen(PORT, () => {
   console.log(`TechStore API running at http://localhost:${PORT}`);

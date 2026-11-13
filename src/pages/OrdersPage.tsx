@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { orderService } from '../services/orderService';
 import { formatCurrency, formatDate, getOrderStatusLabel, getOrderStatusColor } from '../utils/format';
 import EmptyState from '../components/common/EmptyState';
@@ -10,10 +11,12 @@ import type { Order } from '../types';
 
 export default function OrdersPage() {
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Order | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -26,6 +29,27 @@ export default function OrdersPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [isAuthenticated, navigate]);
+
+  const handleCancel = async (order: Order) => {
+    if (order.status !== 'pending') return;
+    const ok = window.confirm(
+      `Bạn chắc chắn muốn hủy đơn ${order.id.slice(0, 12)}…? Tồn kho sẽ được hoàn lại.`
+    );
+    if (!ok) return;
+
+    setCancellingId(order.id);
+    try {
+      const updated = await orderService.cancelOrder(order.id);
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
+      if (selected?.id === order.id) setSelected(updated);
+      showToast('Đã hủy đơn hàng thành công', 'success');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Hủy đơn thất bại';
+      showToast(message, 'error');
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   if (loading) return <Loading />;
   if (!orders.length) {
@@ -64,11 +88,27 @@ export default function OrdersPage() {
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                <button onClick={() => setSelected(selected?.id === order.id ? null : order)} className="text-sm text-blue-600 hover:underline">
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setSelected(selected?.id === order.id ? null : order)}
+                  className="text-sm text-blue-600 hover:underline"
+                >
                   {selected?.id === order.id ? 'Ẩn chi tiết' : 'Xem chi tiết'}
                 </button>
-                <p className="font-bold text-blue-600">{formatCurrency(order.total)}</p>
+                <div className="flex items-center gap-3">
+                  {order.status === 'pending' && (
+                    <button
+                      type="button"
+                      disabled={cancellingId === order.id}
+                      onClick={() => handleCancel(order)}
+                      className="text-sm px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {cancellingId === order.id ? 'Đang hủy…' : 'Hủy đơn'}
+                    </button>
+                  )}
+                  <p className="font-bold text-blue-600">{formatCurrency(order.total)}</p>
+                </div>
               </div>
               {selected?.id === order.id && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">

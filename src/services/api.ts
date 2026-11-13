@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/$/, '');
 
 function getToken(): string | null {
   return localStorage.getItem('techstore_token');
@@ -23,10 +23,33 @@ export async function api<T = unknown>(
   return data as T;
 }
 
+/**
+ * Upload file (FormData) — không set Content-Type để browser tự thêm multipart boundary.
+ */
+export async function uploadFile<T = unknown>(
+  path: string,
+  formData: FormData
+): Promise<T> {
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || `Lỗi ${res.status}`);
+  }
+  return data as T;
+}
+
 export function mediaUrl(path: string): string {
   if (!path) return '/images/products/placeholder.jpg';
   if (path.startsWith('http')) return path;
-  const base = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/api$/, '');
+  const base = API_URL.replace(/\/api$/, '');
   return `${base}${path.startsWith('/') ? path : `/${path}`}`;
 }
 

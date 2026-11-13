@@ -72,4 +72,9 @@ export const orderService = {
       body: JSON.stringify({ status }),
     });
   },
+
+  /** Khách hủy đơn pending (hoàn kho phía server) */
+  cancelOrder(id: string) {
+    return api<Order>(`/orders/${id}/cancel`, { method: 'PATCH' });
+  },
 };

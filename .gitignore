@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Ảnh admin upload (giữ ảnh seed)
+backend/public/images/products/upload-*

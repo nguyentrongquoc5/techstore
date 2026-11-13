@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api, uploadFile } from './api';
 import type { Product, Category } from '../types';
 
 export const productService = {
@@ -33,6 +33,13 @@ export const productService = {
 
   delete(id: string) {
     return api(`/products/${id}`, { method: 'DELETE' });
+  },
+
+  /** Upload ảnh sản phẩm (admin), trả về { url } */
+  uploadImage(file: File) {
+    const fd = new FormData();
+    fd.append('image', file);
+    return uploadFile<{ url: string }>('/upload/product-image', fd);
   },
 
   createCategory(data: { name: string; description?: string }) {
