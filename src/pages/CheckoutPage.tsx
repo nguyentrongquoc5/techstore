@@ -12,6 +12,7 @@ import { usePageTitle } from '../hooks/usePageTitle';
 import { paymentService } from '../services/paymentService';
 import { addressService } from '../services/addressService';
 import type { Address } from '../types';
+import { isValidVietnamPhone } from '../utils/phone';
 
 export default function CheckoutPage() {
   usePageTitle('Thanh toán');
@@ -105,12 +106,11 @@ export default function CheckoutPage() {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    const vnPhoneRegex = /^(0|\+84)[0-9]{9,10}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!form.fullName.trim()) e.fullName = 'Vui lòng nhập họ tên';
-    if (!form.phone.trim() || !vnPhoneRegex.test(form.phone.trim())) {
-      e.phone = 'Số điện thoại không hợp lệ (bắt đầu bằng 0 hoặc +84, 10-11 chữ số)';
+    if (!form.phone.trim() || !isValidVietnamPhone(form.phone)) {
+      e.phone = 'Số điện thoại không hợp lệ (10 số bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84 theo sau bởi 9 số)';
     }
     if (!form.email.trim() || !emailRegex.test(form.email.trim())) {
       e.email = 'Email không hợp lệ';

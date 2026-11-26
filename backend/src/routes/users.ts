@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma.js';
 import { adminRequired } from '../middleware/auth.js';
 import { validate } from '../utils/validate.js';
+import { VN_PHONE_REGEX } from '../utils/phone.js';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ const createUserSchema = z.object({
   email: z.string().trim().email('Email không hợp lệ'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   fullName: z.string().trim().min(1, 'Họ tên không được để trống').max(100),
-  phone: z.string().trim().max(20).optional().default(''),
+  phone: z.string().trim().regex(VN_PHONE_REGEX, 'Số điện thoại không hợp lệ').optional().or(z.literal('')).default(''),
   role: z.enum(['USER', 'ADMIN']).optional().default('USER'),
 });
 

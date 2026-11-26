@@ -153,6 +153,25 @@ describe('TechStore API', () => {
     expect(response.body.message).toMatch(/mật khẩu.*6/i);
   });
 
+  it('register SĐT sai định dạng trả 400', async () => {
+    const response = await request(app).post('/api/auth/register').send({
+      email: 'phone-format@test.com',
+      password: 'test1234',
+      fullName: 'Phone Format',
+      phone: '0123456789',
+    });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/số điện thoại|phone/i);
+  });
+
+  it('profile chấp nhận SĐT quốc tế +84', async () => {
+    const response = await request(app)
+      .put('/api/auth/profile')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ phone: '+84900000000' });
+    expect(response.status).toBe(200);
+  });
+
   it('login email không hợp lệ trả 400', async () => {
     const response = await request(app).post('/api/auth/login').send({
       email: 'khong-phai-email', password: 'test1234',

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { isValidVietnamPhone } from '../utils/phone';
 
 export default function RegisterPage() {
   usePageTitle('Đăng ký');
@@ -22,6 +23,10 @@ export default function RegisterPage() {
     }
     if (form.password.length < 6) {
       setError('Mật khẩu phải có ít nhất 6 ký tự');
+      return;
+    }
+    if (form.phone && !isValidVietnamPhone(form.phone)) {
+      setError('Số điện thoại không hợp lệ');
       return;
     }
     setLoading(true);

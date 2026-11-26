@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma.js';
 import { authRequired, signToken } from '../middleware/auth.js';
 import { validate } from '../utils/validate.js';
+import { VN_PHONE_REGEX } from '../utils/phone.js';
 import { getFrontendOrigins } from '../utils/config.js';
 
 const router = Router();
@@ -29,12 +30,12 @@ const registerSchema = z.object({
   email: z.string({ error: 'Email không hợp lệ' }).trim().email('Email không hợp lệ'),
   password: z.string({ error: 'Mật khẩu phải có ít nhất 6 ký tự' }).min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   fullName: z.string({ error: 'Họ tên không được để trống' }).min(1, 'Họ tên không được để trống'),
-  phone: z.string().optional(),
+  phone: z.string().trim().regex(VN_PHONE_REGEX, 'Số điện thoại không hợp lệ').optional().or(z.literal('')),
 });
 
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Họ tên không được để trống').optional(),
-  phone: z.string().optional(),
+  phone: z.string().trim().regex(VN_PHONE_REGEX, 'Số điện thoại không hợp lệ').optional().or(z.literal('')),
   address: z.string().optional(),
   city: z.string().optional(),
   district: z.string().optional(),

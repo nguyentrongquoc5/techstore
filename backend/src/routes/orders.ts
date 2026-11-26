@@ -10,14 +10,13 @@ import { assertCouponUsable } from './coupons.js';
 import { BusinessError, notFound, forbidden } from '../utils/errors.js';
 import { restoreOrderStock } from '../utils/orderStock.js';
 import { sendOrderConfirmation } from '../services/orderEmail.js';
+import { VN_PHONE_REGEX } from '../utils/phone.js';
 
 const router = Router();
 
 /** Phí ship: miễn phí nếu tạm tính > 5.000.000đ (cùng rule frontend) */
 const FREE_SHIP_THRESHOLD = 5_000_000;
 const SHIPPING_FEE = 30_000;
-
-const vnPhoneRegex = /^(0|\+84)[0-9]{9,10}$/;
 
 const shippingInfoSchema = z.object({
   fullName: z
@@ -39,7 +38,7 @@ const shippingInfoSchema = z.object({
   phone: z
     .string({ error: 'Số điện thoại không hợp lệ' })
     .trim()
-    .regex(vnPhoneRegex, 'Số điện thoại không hợp lệ (bắt đầu bằng 0 hoặc +84, 10-11 chữ số)'),
+    .regex(VN_PHONE_REGEX, 'Số điện thoại không hợp lệ (10 số bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84 theo sau bởi 9 số)'),
   email: z
     .string({ error: 'Email không hợp lệ' })
     .trim()

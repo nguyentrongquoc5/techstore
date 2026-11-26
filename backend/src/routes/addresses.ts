@@ -3,13 +3,14 @@ import { z } from 'zod';
 import { prisma } from '../prisma.js';
 import { authRequired } from '../middleware/auth.js';
 import { validate } from '../utils/validate.js';
+import { VN_PHONE_REGEX } from '../utils/phone.js';
 
 const router = Router();
 
 const addressSchema = z.object({
   label: z.string().trim().min(1).max(50).default('Nhà riêng'),
   fullName: z.string().trim().min(1).max(100),
-  phone: z.string().trim().regex(/^(0|\+84)[0-9]{9,10}$/, 'Số điện thoại không hợp lệ'),
+  phone: z.string().trim().regex(VN_PHONE_REGEX, 'Số điện thoại không hợp lệ (10 số bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84 theo sau bởi 9 số)'),
   address: z.string().trim().min(1).max(300),
   district: z.string().trim().min(1).max(100),
   city: z.string().trim().min(1).max(100),

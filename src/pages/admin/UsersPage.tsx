@@ -8,6 +8,7 @@ import Pagination from '../../components/common/Pagination';
 import { UserPlus, Trash2 } from 'lucide-react';
 import PageSizeSelect from '../../components/common/PageSizeSelect';
 import { usePageSize } from '../../hooks/usePageSize';
+import { isValidVietnamPhone } from '../../utils/phone';
 
 export default function AdminUsersPage() {
   const { showToast } = useToast();
@@ -68,6 +69,10 @@ export default function AdminUsersPage() {
 
   const create = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (newUser.phone && !isValidVietnamPhone(newUser.phone)) {
+      showToast('Số điện thoại không hợp lệ', 'error');
+      return;
+    }
     try {
       const user = await userService.create(newUser);
       setUsers((current) => [user, ...current]);

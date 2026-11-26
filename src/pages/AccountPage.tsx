@@ -5,6 +5,7 @@ import { useToast } from '../contexts/ToastContext';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { addressService, type AddressInput } from '../services/addressService';
 import type { Address } from '../types';
+import { isValidVietnamPhone } from '../utils/phone';
 
 export default function AccountPage() {
   usePageTitle('Tài khoản');
@@ -45,6 +46,10 @@ export default function AccountPage() {
 
   const handleInfo = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (info.phone && !isValidVietnamPhone(info.phone)) {
+      showToast('Số điện thoại không hợp lệ', 'error');
+      return;
+    }
     const result = await updateProfile(info);
     if (result.success) showToast('Cập nhật thành công', 'success');
     else showToast(result.message || 'Lỗi', 'error');
@@ -65,6 +70,10 @@ export default function AccountPage() {
 
   const saveAddress = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!isValidVietnamPhone(addressForm.phone)) {
+      showToast('Số điện thoại không hợp lệ', 'error');
+      return;
+    }
     try {
       const saved = editingAddressId
         ? await addressService.update(editingAddressId, addressForm)
