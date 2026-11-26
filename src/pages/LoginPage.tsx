@@ -91,12 +91,6 @@ export default function LoginPage() {
             </Link>
           </div>
         </form>
-
-        <div className="mt-6 bg-blue-50 rounded-xl p-4 text-sm text-blue-800">
-          <p className="font-medium mb-1">Tài khoản demo:</p>
-          <p>User: user@gmail.com / 123456</p>
-          <p>Admin: admin@gmail.com / admin123</p>
-        </div>
       </div>
     </div>
   );
