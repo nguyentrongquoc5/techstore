@@ -82,7 +82,7 @@ router.get('/my', authRequired, async (req, res) => {
 
 router.get('/', adminRequired, async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 12));
+  const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 12));
   const skip = (page - 1) * limit;
   const statusFilter = String(req.query.status || '').trim();
   const paymentStatusFilter = String(req.query.paymentStatus || '').trim();

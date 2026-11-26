@@ -32,6 +32,7 @@ export default function AccountPage() {
     district: user?.district || '',
   });
   const [pass, setPass] = useState({ old: '', newP: '', confirm: '' });
+  const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => {
     addressService.list().then(setAddresses).catch((error: unknown) => {
@@ -46,12 +47,14 @@ export default function AccountPage() {
 
   const handleInfo = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPhoneError('');
     if (info.phone && !isValidVietnamPhone(info.phone)) {
-      showToast('Số điện thoại không hợp lệ', 'error');
+      setPhoneError('Số điện thoại không hợp lệ');
       return;
     }
     const result = await updateProfile(info);
     if (result.success) showToast('Cập nhật thành công', 'success');
+    else if (result.message === 'Số điện thoại đã được sử dụng') setPhoneError(result.message);
     else showToast(result.message || 'Lỗi', 'error');
   };
 
@@ -172,7 +175,21 @@ export default function AccountPage() {
           {[{ key: 'fullName', label: 'Họ và tên' }, { key: 'phone', label: 'Số điện thoại' }, { key: 'address', label: 'Địa chỉ' }, { key: 'city', label: 'Tỉnh/Thành phố' }, { key: 'district', label: 'Quận/Huyện' }].map((f) => (
             <div key={f.key}>
               <label className="block text-sm font-medium mb-1">{f.label}</label>
-              <input value={(info as any)[f.key]} onChange={(e) => setInfo({ ...info, [f.key]: e.target.value })} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input
+                value={(info as any)[f.key]}
+                onChange={(e) => {
+                  setInfo({ ...info, [f.key]: e.target.value });
+                  if (f.key === 'phone') setPhoneError('');
+                }}
+                className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                  f.key === 'phone' && phoneError
+                    ? 'border-red-400 focus:ring-red-200'
+                    : 'border-gray-200 focus:ring-blue-500'
+                }`}
+              />
+              {f.key === 'phone' && phoneError && (
+                <p className="mt-1 text-sm text-red-600">{phoneError}</p>
+              )}
             </div>
           ))}
           <div className="flex gap-3 pt-2">

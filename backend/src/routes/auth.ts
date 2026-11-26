@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma.js';
 import { authRequired, signToken } from '../middleware/auth.js';
 import { validate } from '../utils/validate.js';
-import { VN_PHONE_REGEX } from '../utils/phone.js';
+import { normalizeVietnamPhone, VN_PHONE_REGEX } from '../utils/phone.js';
 import { getFrontendOrigins } from '../utils/config.js';
 
 const router = Router();
@@ -72,6 +72,15 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res)
   const normalizedEmail = String(email).trim().toLowerCase();
   const exists = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (exists) return res.status(400).json({ message: 'Email đã được sử dụng' });
+  const normalizedPhone = phone ? normalizeVietnamPhone(phone) : '';
+  if (normalizedPhone) {
+    const internationalPhone = `+84${normalizedPhone.slice(1)}`;
+    const phoneExists = await prisma.user.findFirst({
+      where: { phone: { in: [normalizedPhone, internationalPhone] } },
+      select: { id: true },
+    });
+    if (phoneExists) return res.status(400).json({ message: 'Số điện thoại đã được sử dụng' });
+  }
   const hash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: {
@@ -96,6 +105,18 @@ router.get('/me', authRequired, async (req, res) => {
 
 router.put('/profile', authRequired, validate(profileSchema), async (req, res) => {
   const { fullName, phone, address, city, district } = req.body;
+  if (phone) {
+    const normalizedPhone = normalizeVietnamPhone(phone);
+    const internationalPhone = `+84${normalizedPhone.slice(1)}`;
+    const phoneExists = await prisma.user.findFirst({
+      where: {
+        id: { not: req.user!.userId },
+        phone: { in: [normalizedPhone, internationalPhone] },
+      },
+      select: { id: true },
+    });
+    if (phoneExists) return res.status(400).json({ message: 'Số điện thoại đã được sử dụng' });
+  }
   const user = await prisma.user.update({
     where: { id: req.user!.userId },
     data: {

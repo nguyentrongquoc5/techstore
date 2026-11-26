@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma.js';
 import { adminRequired } from '../middleware/auth.js';
 import { validate } from '../utils/validate.js';
-import { VN_PHONE_REGEX } from '../utils/phone.js';
+import { normalizeVietnamPhone, VN_PHONE_REGEX } from '../utils/phone.js';
 
 const router = Router();
 
@@ -25,6 +25,15 @@ router.post('/', adminRequired, validate(createUserSchema), async (req, res) => 
   const email = String(req.body.email).trim().toLowerCase();
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists) return res.status(409).json({ message: 'Email đã được sử dụng' });
+  if (req.body.phone) {
+    const normalizedPhone = normalizeVietnamPhone(req.body.phone);
+    const internationalPhone = `+84${normalizedPhone.slice(1)}`;
+    const phoneExists = await prisma.user.findFirst({
+      where: { phone: { in: [normalizedPhone, internationalPhone] } },
+      select: { id: true },
+    });
+    if (phoneExists) return res.status(409).json({ message: 'Số điện thoại đã được sử dụng' });
+  }
   const password = await bcrypt.hash(req.body.password, 10);
   const user = await prisma.user.create({
     data: {

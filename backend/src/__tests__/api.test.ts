@@ -20,10 +20,10 @@ describe('TechStore API', () => {
 
     const passwordHash = await bcrypt.hash('test1234', 10);
     const admin = await prisma.user.create({
-      data: { email: 'admin@test.com', password: passwordHash, fullName: 'Admin Test', role: 'ADMIN', isActive: true },
+      data: { email: 'admin@test.com', password: passwordHash, fullName: 'Admin Test', phone: '0911111111', role: 'ADMIN', isActive: true },
     });
     const user = await prisma.user.create({
-      data: { email: 'user@test.com', password: passwordHash, fullName: 'User Test', role: 'USER', isActive: true },
+      data: { email: 'user@test.com', password: passwordHash, fullName: 'User Test', phone: '0900000000', role: 'USER', isActive: true },
     });
     await prisma.user.create({
       data: { email: 'locked@test.com', password: passwordHash, fullName: 'Locked User', role: 'USER', isActive: false },
@@ -164,12 +164,32 @@ describe('TechStore API', () => {
     expect(response.body.message).toMatch(/số điện thoại|phone/i);
   });
 
+  it('register từ chối SĐT đã tồn tại', async () => {
+    const response = await request(app).post('/api/auth/register').send({
+      email: 'phone-duplicate@test.com',
+      password: 'test1234',
+      fullName: 'Phone Duplicate',
+      phone: '+84900000000',
+    });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe('Số điện thoại đã được sử dụng');
+  });
+
   it('profile chấp nhận SĐT quốc tế +84', async () => {
     const response = await request(app)
       .put('/api/auth/profile')
       .set('Authorization', `Bearer ${userToken}`)
       .send({ phone: '+84900000000' });
     expect(response.status).toBe(200);
+  });
+
+  it('profile từ chối SĐT của user khác', async () => {
+    const response = await request(app)
+      .put('/api/auth/profile')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ phone: '+84911111111' });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe('Số điện thoại đã được sử dụng');
   });
 
   it('login email không hợp lệ trả 400', async () => {

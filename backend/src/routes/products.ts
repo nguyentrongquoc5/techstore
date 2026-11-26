@@ -114,7 +114,7 @@ const updateProductSchema = z
 router.get('/', async (req, res) => {
   const { q, category, brand, minPrice, maxPrice, sort, status } = req.query;
   const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 12));
+  const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 12));
   const skip = (page - 1) * limit;
   const where: Prisma.ProductWhereInput = {};
   if (status && status !== 'all') where.status = String(status);

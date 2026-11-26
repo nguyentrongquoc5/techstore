@@ -6,11 +6,12 @@ import {
   ShoppingBag,
   Users,
   FolderTree,
-  Settings,
   LogOut,
   Menu,
   X,
   ChevronLeft,
+  ChevronUp,
+  ChevronDown,
   TicketPercent,
   MessageSquare,
   Mail,
@@ -38,14 +39,141 @@ export default function AdminLayout() {
   const [navLimit, setNavLimit] = useState(() => {
     const stored = window.localStorage.getItem('admin-nav-limit');
     const value = stored ? Number(stored) : 6;
-    return [6, 8].includes(value) ? value : 6;
+    return Number.isSafeInteger(value) && value >= 1 && value <= navItems.length ? value : 6;
   });
-  const visibleNavItems = navItems.slice(0, navLimit);
+  const [visibleMenuItems, setVisibleMenuItems] = useState<string[]>(() => {
+    const stored = window.localStorage.getItem('admin-nav-visible-items');
+    if (!stored) return navItems.slice(1).map((item) => item.to);
+    try {
+      const parsed: unknown = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(
+          (path): path is string =>
+            typeof path === 'string' && navItems.slice(1).some((item) => item.to === path)
+        );
+      }
+    } catch {
+      return navItems.slice(1).map((item) => item.to);
+    }
+    return navItems.slice(1).map((item) => item.to);
+  });
+  const [menuOrder, setMenuOrder] = useState<string[]>(() => {
+    const defaultOrder = navItems.slice(1).map((item) => item.to);
+    const stored = window.localStorage.getItem('admin-nav-order');
+    if (!stored) return defaultOrder;
+    try {
+      const parsed: unknown = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        const validOrder = parsed.filter(
+          (path): path is string =>
+            typeof path === 'string' &&
+            defaultOrder.includes(path) &&
+            parsed.indexOf(path) === parsed.lastIndexOf(path)
+        );
+        return [...validOrder, ...defaultOrder.filter((path) => !validOrder.includes(path))];
+      }
+    } catch {
+      return defaultOrder;
+    }
+    return defaultOrder;
+  });
+  const orderedMenuItems = menuOrder.flatMap((path) => {
+    const item = navItems.find((navItem) => navItem.to === path);
+    return item && item.to !== navItems[0].to ? [item] : [];
+  });
+  const visibleNavItems = [
+    navItems[0],
+    ...orderedMenuItems.filter((item) => visibleMenuItems.includes(item.to)),
+  ].slice(0, navLimit);
 
   const handleNavLimitChange = (value: number) => {
     setNavLimit(value);
     window.localStorage.setItem('admin-nav-limit', String(value));
   };
+
+  const handleMenuVisibilityChange = (path: string, visible: boolean) => {
+    const updatedItems = visible
+      ? [...visibleMenuItems, path]
+      : visibleMenuItems.filter((item) => item !== path);
+    setVisibleMenuItems(updatedItems);
+    window.localStorage.setItem('admin-nav-visible-items', JSON.stringify(updatedItems));
+  };
+
+  const handleMenuReorder = (path: string, direction: -1 | 1) => {
+    const currentIndex = menuOrder.indexOf(path);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= menuOrder.length) return;
+
+    const updatedOrder = [...menuOrder];
+    [updatedOrder[currentIndex], updatedOrder[nextIndex]] = [
+      updatedOrder[nextIndex],
+      updatedOrder[currentIndex],
+    ];
+    setMenuOrder(updatedOrder);
+    window.localStorage.setItem('admin-nav-order', JSON.stringify(updatedOrder));
+  };
+
+  const renderMenuSettings = () => (
+    <details className="mt-3 border-t border-slate-700 pt-3">
+      <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-slate-300">
+        Tùy chỉnh menu
+      </summary>
+      <div className="space-y-2 px-3 pb-2">
+        <label className="flex items-center justify-between text-xs text-slate-300">
+          <span>Số mục menu</span>
+          <select
+            aria-label="Số mục menu"
+            value={navLimit}
+            onChange={(event) => handleNavLimitChange(Number(event.target.value))}
+            className="ml-2 border border-slate-600 rounded bg-slate-800 px-2 py-1 text-white"
+          >
+            {navItems.map((_, index) => {
+              const count = index + 1;
+              return <option key={count} value={count}>{count === navItems.length ? 'Tất cả' : count}</option>;
+            })}
+          </select>
+        </label>
+        <div className="space-y-1">
+          {orderedMenuItems.map((item, index) => (
+            <div key={item.to} className="flex items-center justify-between gap-2 text-xs text-slate-300">
+              <label className="flex min-w-0 items-center gap-2">
+                <input
+                  type="checkbox"
+                  aria-label={`Hiển thị mục ${item.label}`}
+                  checked={visibleMenuItems.includes(item.to)}
+                  onChange={(event) => handleMenuVisibilityChange(item.to, event.target.checked)}
+                  className="accent-blue-500"
+                />
+                <span>{item.label}</span>
+              </label>
+              <div className="flex shrink-0">
+                <button
+                  type="button"
+                  aria-label={`Di chuyển ${item.label} lên`}
+                  title={`Di chuyển ${item.label} lên`}
+                  disabled={index === 0}
+                  onClick={() => handleMenuReorder(item.to, -1)}
+                  className="rounded p-1 text-slate-300 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronUp size={14} />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Di chuyển ${item.label} xuống`}
+                  title={`Di chuyển ${item.label} xuống`}
+                  disabled={index === orderedMenuItems.length - 1}
+                  onClick={() => handleMenuReorder(item.to, 1)}
+                  className="rounded p-1 text-slate-300 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronDown size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </details>
+  );
 
   const handleLogout = () => {
     logout();
@@ -79,20 +207,9 @@ export default function AdminLayout() {
               {item.label}
             </NavLink>
           ))}
+          {renderMenuSettings()}
         </nav>
         <div className="p-3 border-t border-slate-700 space-y-2">
-          <label className="flex items-center justify-between px-3 text-xs text-slate-300">
-            <span>Số mục menu</span>
-            <select
-              aria-label="Số mục menu"
-              value={navLimit}
-              onChange={(event) => handleNavLimitChange(Number(event.target.value))}
-              className="ml-2 border border-slate-600 rounded bg-slate-800 px-2 py-1 text-white"
-            >
-              <option value={6}>6</option>
-              <option value={8}>Tất cả</option>
-            </select>
-          </label>
           <Link to="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-slate-800">
             <ChevronLeft size={18} /> Về trang chủ
           </Link>
@@ -130,6 +247,7 @@ export default function AdminLayout() {
                   {item.label}
                 </NavLink>
               ))}
+              {renderMenuSettings()}
             </nav>
           </aside>
         </div>
