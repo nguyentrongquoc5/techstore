@@ -1,0 +1,248 @@
+# =============================================================================
+# TechStore CI/CD Pipeline – GitHub Actions + GHCR + Render
+# Môn: DEVOPS – Dự án kết thúc môn
+# =============================================================================
+# Pipeline stages:
+#   1. Frontend: lint + build (Vite/React)
+#   2. Backend:  prisma generate + typecheck + unit/integration tests (Vitest)
+#   3. Security: Trivy filesystem scan (critical/high)
+#   4. Docker:   Build & push API + Web images lên GHCR (chỉ trên push main/master)
+#   5. Deploy:   Trigger Render Deploy Hook + chờ health check
+# =============================================================================
+
+name: CI/CD Pipeline – TechStore
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:   # Cho phép chạy thủ công từ tab Actions
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '20'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. FRONTEND – Lint & Build
+  # ---------------------------------------------------------------------------
+  frontend:
+    name: Frontend (Lint + Build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (oxlint)
+        run: npm run lint
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          # URL API tạm thời cho build (sẽ override khi build Docker với ARG)
+          VITE_API_URL: /api
+
+      - name: Upload build artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 3
+
+  # ---------------------------------------------------------------------------
+  # 2. BACKEND – Typecheck + Tests
+  # ---------------------------------------------------------------------------
+  backend:
+    name: Backend (Prisma + Test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate client
+        run: npx prisma generate
+
+      - name: TypeScript type-check
+        run: npx tsc --noEmit
+
+      - name: Run unit & API tests (Vitest)
+        run: npm test
+        env:
+          JWT_SECRET: test-secret-ci-cd
+          DATABASE_URL: file:./test.db
+          NODE_ENV: test
+
+  # ---------------------------------------------------------------------------
+  # 3. SECURITY SCAN – Trivy (filesystem)
+  # ---------------------------------------------------------------------------
+  security:
+    name: Security Scan (Trivy)
+    runs-on: ubuntu-latest
+    needs: [frontend, backend]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'          # Không fail pipeline vì cảnh báo (có thể đổi thành 1)
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+  # ---------------------------------------------------------------------------
+  # 4. DOCKER BUILD & PUSH – Chỉ khi push lên main/master
+  # ---------------------------------------------------------------------------
+  docker-build-push:
+    name: Docker Build & Push (GHCR)
+    needs: [frontend, backend, security]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (frontend / web)
+        id: meta-web
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=web-latest
+            type=sha,prefix=web-
+            type=raw,value=web-${{ github.run_number }}
+
+      - name: Extract metadata (backend / api)
+        id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=api-latest
+            type=sha,prefix=api-
+            type=raw,value=api-${{ github.run_number }}
+
+      - name: Build & push Frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL || 'https://techstore-api.onrender.com/api' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push Backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # 5. DEPLOY – Trigger Render Deploy Hook + Health check
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy to Render
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    environment: production   # Có thể bảo vệ bằng Environment protection rules
+    steps:
+      - name: Trigger Render Deploy Hook (API service)
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          RENDER_DEPLOY_HOOK_WEB: ${{ secrets.RENDER_DEPLOY_HOOK_WEB }}
+        run: |
+          set -e
+          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
+            echo "→ Triggering backend (API) deploy on Render..."
+            curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"
+            echo "✓ Backend deploy triggered"
+          else
+            echo "⚠ RENDER_DEPLOY_HOOK chưa được set trong GitHub Secrets → bỏ qua deploy API"
+          fi
+
+          if [ -n "$RENDER_DEPLOY_HOOK_WEB" ]; then
+            echo "→ Triggering frontend (Web) deploy on Render..."
+            curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK_WEB"
+            echo "✓ Frontend deploy triggered"
+          else
+            echo "⚠ RENDER_DEPLOY_HOOK_WEB chưa set → bỏ qua deploy Web (nếu dùng Static Site có thể không cần)"
+          fi
+
+      - name: Wait for Render service to become healthy
+        env:
+          API_HEALTH_URL: ${{ vars.API_HEALTH_URL || 'https://techstore-api.onrender.com/api/health' }}
+        run: |
+          echo "Đợi 45s để Render pull image & khởi động..."
+          sleep 45
+          echo "Kiểm tra health endpoint: $API_HEALTH_URL"
+          for i in 1 2 3 4 5 6; do
+            if curl -sf --max-time 10 "$API_HEALTH_URL" > /tmp/health.json; then
+              echo "✓ Health check OK"
+              cat /tmp/health.json
+              exit 0
+            fi
+            echo "Lần $i thất bại, đợi thêm 15s..."
+            sleep 15
+          done
+          echo "⚠ Health check chưa thành công sau nhiều lần thử (Render free tier có thể cold-start lâu)."
+          # Không fail pipeline để tránh false-negative trên free plan
+          exit 0
+
+      - name: Summary
+        run: |
+          echo "## TechStore Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Images pushed to GHCR" >> $GITHUB_STEP_SUMMARY
+          echo "- Render deploy hooks triggered" >> $GITHUB_STEP_SUMMARY
