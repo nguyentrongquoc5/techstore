@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Star, ShoppingCart, Heart, GitCompareArrows } from 'lucide-react';
 import type { Product } from '../../types';
 import { formatCurrency } from '../../utils/format';
@@ -17,6 +17,7 @@ export default function ProductCard({ product }: Props) {
   const { addItem } = useCart();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuth();
   const { isWishlisted, toggle } = useWishlist();
   const compare = useCompare();
@@ -35,6 +36,13 @@ export default function ProductCard({ product }: Props) {
     e.stopPropagation();
     if (hasVariants) {
       navigate(`/san-pham/${product.id}`);
+      return;
+    }
+    if (!isAuthenticated) {
+      showToast('Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng', 'info');
+      navigate('/dang-nhap', {
+        state: { from: `${location.pathname}${location.search}` },
+      });
       return;
     }
     try {

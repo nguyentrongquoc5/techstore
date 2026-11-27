@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import type { CartItem, Product, ProductVariant } from '../types';
 import { orderService } from '../services/orderService';
 import { productService } from '../services/productService';
+import { useAuth } from './AuthContext';
 
 interface CartContextType {
   items: (CartItem & { product: Product })[];
@@ -18,6 +19,7 @@ const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<(CartItem & { product: Product; variant?: ProductVariant })[]>([]);
+  const { isAuthenticated } = useAuth();
 
   const refresh = async () => {
     const cart = orderService.getCart();
@@ -49,6 +51,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addItem = async (productId: string, quantity = 1, variantId?: string) => {
+    if (!isAuthenticated) {
+      throw new Error('Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng');
+    }
     if (!Number.isSafeInteger(quantity) || quantity <= 0) {
       throw new Error('Số lượng sản phẩm không hợp lệ');
     }

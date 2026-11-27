@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Star, ShoppingCart, Minus, Plus, ChevronRight, Heart, Pencil, Trash2 } from 'lucide-react';
 import { productService } from '../services/productService';
 import { reviewService } from '../services/reviewService';
@@ -26,6 +26,8 @@ export default function ProductDetailPage() {
   const { addItem } = useCart();
   const { isAuthenticated, user } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { isWishlisted, toggle } = useWishlist();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewTotal, setReviewTotal] = useState(0);
@@ -164,6 +166,13 @@ export default function ProductDetailPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={async () => {
+                if (!isAuthenticated) {
+                  showToast('Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng', 'info');
+                  navigate('/dang-nhap', {
+                    state: { from: `${location.pathname}${location.search}` },
+                  });
+                  return;
+                }
                 try {
                   await addItem(product.id, qty, selectedVariant?.id);
                   showToast('Đã thêm vào giỏ', 'success');
