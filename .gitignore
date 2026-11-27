@@ -12,6 +12,21 @@ dist
 dist-ssr
 *.local
 
+# Environment files (keep examples in version control)
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# SQLite / Prisma local database
+*.db
+*.db-journal
+backend/prisma/*.db
+backend/prisma/*.db-journal
+backend/prisma/data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

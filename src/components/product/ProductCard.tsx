@@ -1,10 +1,13 @@
-import { Link } from 'react-router-dom';
-import { Star, ShoppingCart } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Star, ShoppingCart, Heart, GitCompareArrows } from 'lucide-react';
 import type { Product } from '../../types';
 import { formatCurrency } from '../../utils/format';
 import { useCart } from '../../contexts/CartContext';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import { mediaUrl } from '../../services/api';
+import { useCompare } from '../../contexts/CompareContext';
 
 interface Props {
   product: Product;
@@ -13,7 +16,15 @@ interface Props {
 export default function ProductCard({ product }: Props) {
   const { addItem } = useCart();
   const { showToast } = useToast();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { isWishlisted, toggle } = useWishlist();
+  const compare = useCompare();
+  const liked = isWishlisted(product.id);
   const price = product.salePrice ?? product.price;
+  const hasVariants = Boolean(product.variants?.length);
+  const hasAvailableVariant = product.variants?.some((variant) => variant.isActive && variant.stock > 0) ?? false;
+  const unavailable = hasVariants ? !hasAvailableVariant : product.stock <= 0;
   const discount = product.salePrice
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
@@ -22,8 +33,42 @@ export default function ProductCard({ product }: Props) {
   const handleAdd = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    await addItem(product.id, 1);
-    showToast('Đã thêm vào giỏ hàng', 'success');
+    if (hasVariants) {
+      navigate(`/san-pham/${product.id}`);
+      return;
+    }
+    try {
+      await addItem(product.id, 1);
+      showToast('Đã thêm vào giỏ hàng', 'success');
+    } catch (error: unknown) {
+      showToast(error instanceof Error ? error.message : 'Không thể thêm vào giỏ hàng', 'error');
+    }
+  };
+
+  const handleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      showToast('Vui lòng đăng nhập để thêm yêu thích', 'info');
+      return;
+    }
+    try {
+      await toggle(product.id);
+      showToast(liked ? 'Đã bỏ yêu thích' : 'Đã thêm vào yêu thích', 'success');
+    } catch {
+      showToast('Không thể cập nhật yêu thích', 'error');
+    }
+  };
+
+  const handleCompare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const added = compare.toggle(product.id);
+      showToast(added ? 'Đã thêm vào danh sách so sánh' : 'Đã bỏ khỏi danh sách so sánh', 'success');
+    } catch (error: unknown) {
+      showToast(error instanceof Error ? error.message : 'Không thể thêm sản phẩm', 'error');
+    }
   };
 
   return (
@@ -38,8 +83,9 @@ export default function ProductCard({ product }: Props) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
           onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = 'https://placehold.co/400x400/e2e8f0/64748b?text=' + encodeURIComponent(product.name.slice(0, 20));
+            if (!e.currentTarget.src.includes('/placeholder.svg')) {
+              e.currentTarget.src = mediaUrl('');
+            }
           }}
         />
         {discount > 0 && (
@@ -48,6 +94,20 @@ export default function ProductCard({ product }: Props) {
         {product.isBestSeller && (
           <span className="absolute top-2 right-2 bg-amber-500 text-white text-xs font-medium px-2 py-1 rounded">Bán chạy</span>
         )}
+        <button
+          onClick={handleWishlist}
+          className="absolute bottom-2 right-2 p-1.5 bg-white/90 rounded-full shadow hover:bg-white transition"
+          title={liked ? 'Bỏ yêu thích' : 'Thêm yêu thích'}
+        >
+          <Heart size={16} className={liked ? 'text-red-500 fill-red-500' : 'text-gray-400'} />
+        </button>
+        <button
+          onClick={handleCompare}
+          className="absolute bottom-2 left-2 p-1.5 bg-white/90 rounded-full shadow hover:bg-white transition"
+          title={compare.has(product.id) ? 'Bỏ khỏi so sánh' : 'So sánh sản phẩm'}
+        >
+          <GitCompareArrows size={16} className={compare.has(product.id) ? 'text-blue-600' : 'text-gray-500'} />
+        </button>
       </div>
       <div className="p-3 sm:p-4 flex flex-col flex-1">
         <p className="text-xs text-gray-400 mb-1">{product.brand} · {product.categoryName}</p>
@@ -62,7 +122,12 @@ export default function ProductCard({ product }: Props) {
             <p className="text-base font-bold text-blue-600">{formatCurrency(price)}</p>
             {product.salePrice && <p className="text-xs text-gray-400 line-through">{formatCurrency(product.price)}</p>}
           </div>
-          <button onClick={handleAdd} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition" title="Thêm vào giỏ">
+          <button
+            onClick={handleAdd}
+            disabled={unavailable}
+            className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+            title={unavailable ? 'Hết hàng' : hasVariants ? 'Chọn biến thể' : 'Thêm vào giỏ'}
+          >
             <ShoppingCart size={16} />
           </button>
         </div>

@@ -1,10 +1,10 @@
 import { api } from './api';
-import type { Product, Category } from '../types';
+import type { Product, Category, Paginated } from '../types';
 
 export const productService = {
   getAll(params?: Record<string, string>) {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    return api<Product[]>(`/products${qs}`);
+    return api<Paginated<Product>>(`/products${qs}`);
   },
 
   getById(id: string) {
@@ -17,6 +17,15 @@ export const productService = {
 
   getBestSellers() {
     return api<Product[]>('/products/best-sellers');
+  },
+
+  getBrands(category?: string, status = 'active') {
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    if (status !== 'active') params.set('status', status);
+    const query = params.toString();
+    const qs = query ? `?${query}` : '';
+    return api<string[]>(`/products/brands${qs}`);
   },
 
   getCategories() {
@@ -33,6 +42,15 @@ export const productService = {
 
   delete(id: string) {
     return api(`/products/${id}`, { method: 'DELETE' });
+  },
+
+  uploadImages(files: File[]) {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('images', file));
+    return api<{ paths: string[] }>('/products/upload', {
+      method: 'POST',
+      body: formData,
+    });
   },
 
   createCategory(data: { name: string; description?: string }) {

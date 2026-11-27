@@ -4,11 +4,17 @@ import { useCart } from '../contexts/CartContext';
 import { formatCurrency } from '../utils/format';
 import EmptyState from '../components/common/EmptyState';
 import { mediaUrl } from '../services/api';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function CartPage() {
+  usePageTitle('Giỏ hàng');
   const { items, subtotal, updateQuantity, removeItem, clearCart } = useCart();
   const shipping = subtotal > 5000000 || subtotal === 0 ? 0 : 30000;
   const total = subtotal + shipping;
+  const hasUnavailableItems = items.some(
+    (item) => item.product.status !== 'active'
+      || (item.variantId ? !item.variant || !item.variant.isActive || item.quantity > item.variant.stock : item.quantity > item.product.stock),
+  );
 
   if (items.length === 0) {
     return (
@@ -35,9 +41,10 @@ export default function CartPage() {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-3">
           {items.map((item) => {
-            const price = item.product.salePrice ?? item.product.price;
+            const price = item.variant?.price ?? item.product.salePrice ?? item.product.price;
+            const stock = item.variant?.stock ?? item.product.stock;
             return (
-              <div key={item.productId} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4">
+              <div key={`${item.productId}:${item.variantId || ''}`} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4">
                 <Link to={`/san-pham/${item.productId}`} className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 rounded-lg overflow-hidden shrink-0">
                   <img src={mediaUrl(item.product.images?.[0] || "")} alt={item.product.name} className="w-full h-full object-cover" />
                 </Link>
@@ -46,21 +53,34 @@ export default function CartPage() {
                     {item.product.name}
                   </Link>
                   <p className="text-xs text-gray-400 mt-0.5">{item.product.brand}</p>
+                  {item.variantId && <p className="text-xs text-gray-500 mt-0.5">{item.variant ? [item.variant.color, item.variant.configuration].filter(Boolean).join(' · ') : 'Biến thể không còn khả dụng'}</p>}
                   <p className="text-blue-600 font-semibold mt-1">{formatCurrency(price)}</p>
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center border border-gray-200 rounded-lg">
-                      <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-1.5 hover:bg-gray-50">
+                      <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId)} className="p-1.5 hover:bg-gray-50">
                         <Minus size={14} />
                       </button>
                       <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-1.5 hover:bg-gray-50">
+                      <button
+                        onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId)}
+                        disabled={item.quantity >= stock}
+                        className="p-1.5 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
                         <Plus size={14} />
                       </button>
                     </div>
-                    <button onClick={() => removeItem(item.productId)} className="p-1.5 text-gray-400 hover:text-red-500">
+                    <button onClick={() => removeItem(item.productId, item.variantId)} className="p-1.5 text-gray-400 hover:text-red-500">
                       <Trash2 size={16} />
                     </button>
                   </div>
+                  {stock < item.quantity && (
+                    <p className="text-xs text-red-600 mt-2">
+                      Chỉ còn {stock} sản phẩm trong kho. Vui lòng giảm số lượng.
+                    </p>
+                  )}
+                  {item.product.status !== 'active' && (
+                    <p className="text-xs text-red-600 mt-2">Sản phẩm đang ngừng bán.</p>
+                  )}
                 </div>
                 <div className="hidden sm:block text-right shrink-0">
                   <p className="font-semibold text-gray-900">{formatCurrency(price * item.quantity)}</p>
@@ -88,12 +108,18 @@ export default function CartPage() {
                 <span className="text-blue-600">{formatCurrency(total)}</span>
               </div>
             </div>
-            <Link
-              to="/thanh-toan"
-              className="mt-5 w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
-            >
-              <ShoppingBag size={18} /> Thanh toán
-            </Link>
+            {hasUnavailableItems ? (
+              <p className="mt-5 text-sm text-red-600">
+                Điều chỉnh sản phẩm không đủ tồn kho trước khi thanh toán.
+              </p>
+            ) : (
+              <Link
+                to="/thanh-toan"
+                className="mt-5 w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+              >
+                <ShoppingBag size={18} /> Thanh toán
+              </Link>
+            )}
             <Link to="/san-pham" className="mt-2 w-full block text-center py-2 text-sm text-blue-600 hover:underline">
               Tiếp tục mua sắm
             </Link>

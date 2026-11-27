@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X, LogOut, Package, LayoutDashboard } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, LogOut, Package, LayoutDashboard, Heart, GitCompareArrows } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { productService } from '../../services/productService';
+import { useCompare } from '../../contexts/CompareContext';
 
 export default function Header() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount } = useCart();
+  const compare = useCompare();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -53,6 +55,15 @@ export default function Header() {
           </form>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <Link to="/so-sanh" className="relative p-2 text-gray-600 hover:text-blue-600 transition" title="So sánh sản phẩm">
+              <GitCompareArrows size={22} />
+              {compare.productIds.length > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 bg-blue-600 text-white text-[10px] rounded-full flex items-center justify-center">{compare.productIds.length}</span>}
+            </Link>
+            {isAuthenticated && (
+              <Link to="/yeu-thich" className="p-2 text-gray-600 hover:text-red-500 transition" title="Yêu thích">
+                <Heart size={22} />
+              </Link>
+            )}
             <Link to="/gio-hang" className="relative p-2 text-gray-600 hover:text-blue-600 transition">
               <ShoppingCart size={22} />
               {itemCount > 0 && (
@@ -84,6 +95,9 @@ export default function Header() {
                       </Link>
                       <Link to="/don-hang" onClick={() => setUserMenu(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                         <Package size={16} /> Đơn hàng
+                      </Link>
+                      <Link to="/yeu-thich" onClick={() => setUserMenu(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <Heart size={16} /> Yêu thích
                       </Link>
                       {isAdmin && (
                         <Link to="/admin/dashboard" onClick={() => setUserMenu(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">

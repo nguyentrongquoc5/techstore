@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function NotFoundPage() {
+  usePageTitle('Không tìm thấy trang');
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
       <h1 className="text-7xl font-bold text-blue-600 mb-2">404</h1>

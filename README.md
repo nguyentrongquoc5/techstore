@@ -58,6 +58,21 @@ docker compose up -d --build
 - Web: http://localhost:8080  
 - API: http://localhost:4000  
 
+## Các tính năng mở rộng
+
+- Thanh toán VNPay và MoMo được xác minh bằng chữ ký callback/IPN; cổng chỉ hoạt động khi khai báo đủ biến merchant. Chạy API trực tiếp thì cấu hình `backend/.env` (xem `backend/.env.example`); Docker Compose đọc cấu hình từ `.env` ở thư mục gốc (xem `.env.example`). `VNPAY_RETURN_URL` và `MOMO_REDIRECT_URL` trỏ về `/thanh-toan/ket-qua`; callback MoMo và IPN VNPay cần URL backend công khai qua HTTPS và phải khai báo đúng trong trang merchant. Không đưa secret vào frontend hoặc commit lên Git.
+- Email xác nhận đơn dùng SMTP. Cấu hình `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` và tùy chọn `SMTP_FROM`. Không cấu hình SMTP thì đơn vẫn được tạo, API trả `emailSent: false`.
+- Biến thể sản phẩm (màu/cấu hình/SKU, giá tùy chọn, tồn kho riêng) quản lý trong form admin. Tồn kho biến thể được kiểm tra và trừ/hoàn cùng giao dịch đặt/hủy đơn.
+- So sánh lưu trên trình duyệt (tối đa 4 sản phẩm); sổ địa chỉ và sửa/xóa đánh giá chỉ giới hạn cho chủ sở hữu.
+- Admin có thể tạo/xóa user (user có lịch sử đơn cần khóa thay vì xóa) và tải CSV đơn hàng/doanh thu từ dashboard.
+
+Sau khi cập nhật schema, chạy trong `backend`:
+
+```bash
+npm run db:generate
+npm run db:push
+```
+
 ## API chính
 
 - `POST /api/auth/login` `register` `GET /me`

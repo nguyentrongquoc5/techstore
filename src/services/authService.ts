@@ -68,6 +68,20 @@ export const authService = {
     });
   },
 
+  async forgotPassword(email: string) {
+    return api<{ message: string; resetToken?: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async resetPassword(token: string, password: string) {
+    return api<{ message: string }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+  },
+
   logout() {
     this.clearSession();
   },

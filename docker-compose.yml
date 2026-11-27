@@ -8,22 +8,44 @@ services:
       DATABASE_URL: file:./data/prod.db
       JWT_SECRET: techstore-jenkins-secret
       PORT: 4000
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
+      VNPAY_URL: ${VNPAY_URL:-}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL:-}
+      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE:-}
+      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY:-}
+      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY:-}
+      MOMO_ENDPOINT: ${MOMO_ENDPOINT:-}
+      MOMO_REDIRECT_URL: ${MOMO_REDIRECT_URL:-}
+      MOMO_IPN_URL: ${MOMO_IPN_URL:-}
     volumes:
       - ./backend/public/images:/app/public/images
       - api_data:/app/prisma/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   web:
     image: techstore-web:latest
     build:
       context: .
       args:
-        # Browser gọi API qua máy host — đổi IP nếu truy cập từ máy khác
         VITE_API_URL: http://127.0.0.1:4000/api
     ports:
       - "8080:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

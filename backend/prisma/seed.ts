@@ -71,11 +71,168 @@ const categories = [
   { name: 'Phụ kiện', slug: 'phu-kien', description: 'Sạc, ốp lưng, cáp, hub' },
 ];
 
+async function seedCoupons() {
+  const expiresAt = new Date();
+  expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+  const coupons = [
+    { code: 'GIAM10', type: 'percent', value: 10, minOrder: 500000, maxDiscount: 500000, usageLimit: 100 },
+    { code: 'FREESHIP', type: 'fixed', value: 30000, minOrder: 0, maxDiscount: null, usageLimit: 200 },
+    { code: 'SALE50K', type: 'fixed', value: 50000, minOrder: 1000000, maxDiscount: null, usageLimit: 50 },
+  ];
+
+  for (const coupon of coupons) {
+    await prisma.coupon.upsert({
+      where: { code: coupon.code },
+      update: {},
+      create: { ...coupon, usedCount: 0, expiresAt, isActive: true },
+    });
+  }
+}
+
+async function seedReviews() {
+  const [admin, macbook, iphone] = await Promise.all([
+    prisma.user.findUnique({ where: { email: 'admin@gmail.com' } }),
+    prisma.product.findFirst({ where: { name: 'MacBook Air M3' } }),
+    prisma.product.findFirst({ where: { name: 'iPhone 16 Pro' } }),
+  ]);
+  if (!admin || !macbook || !iphone) return;
+
+  const samples = [
+    { productId: macbook.id, userId: admin.id, rating: 5, comment: 'Máy chạy mượt, pin trâu, rất hài lòng!' },
+    { productId: iphone.id, userId: admin.id, rating: 4, comment: 'Camera đẹp, giao hàng nhanh.' },
+  ];
+  for (const sample of samples) {
+    await prisma.review.upsert({
+      where: { productId_userId: { productId: sample.productId, userId: sample.userId } },
+      update: {},
+      create: sample,
+    });
+    const aggregate = await prisma.review.aggregate({
+      where: { productId: sample.productId },
+      _avg: { rating: true },
+      _count: { _all: true },
+    });
+    await prisma.product.update({
+      where: { id: sample.productId },
+      data: {
+        rating: Number((aggregate._avg.rating ?? 0).toFixed(1)),
+        reviewCount: aggregate._count._all,
+      },
+    });
+  }
+}
+
+async function seedMissingDevelopmentData() {
+  const passwordAdmin = await bcrypt.hash('admin123', 10);
+  const passwordUser = await bcrypt.hash('123456', 10);
+
+  await prisma.user.upsert({
+    where: { email: 'admin@gmail.com' },
+    update: {},
+    create: {
+      email: 'admin@gmail.com',
+      password: passwordAdmin,
+      fullName: 'Quản trị viên',
+      phone: '0901234567',
+      address: '123 Nguyễn Huệ',
+      city: 'Hồ Chí Minh',
+      district: 'Quận 1',
+      role: 'ADMIN',
+    },
+  });
+  await prisma.user.upsert({
+    where: { email: 'user@gmail.com' },
+    update: {},
+    create: {
+      email: 'user@gmail.com',
+      password: passwordUser,
+      fullName: 'Nguyễn Văn A',
+      phone: '0912345678',
+      address: '456 Lê Lợi',
+      city: 'Hà Nội',
+      district: 'Hoàn Kiếm',
+      role: 'USER',
+    },
+  });
+
+  const catMap: Record<string, string> = {};
+  for (const category of categories) {
+    const saved = await prisma.category.upsert({
+      where: { slug: category.slug },
+      update: {},
+      create: category,
+    });
+    catMap[category.slug] = saved.id;
+  }
+
+  for (const item of productsSeed) {
+    const slug = `${item.name.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')}-${item.img.replace('.jpg', '')}`;
+    const existing = await prisma.product.findUnique({ where: { slug } });
+    const images = JSON.stringify([`/images/products/${item.img}`]);
+    if (existing) {
+      let existingImages: unknown;
+      try {
+        existingImages = JSON.parse(existing.images);
+      } catch {
+        existingImages = null;
+      }
+      if (!Array.isArray(existingImages) || existingImages.length === 0) {
+        await prisma.product.update({ where: { id: existing.id }, data: { images } });
+      }
+      continue;
+    }
+
+    await prisma.product.create({
+      data: {
+        name: item.name,
+        slug,
+        categoryId: catMap[item.cat],
+        brand: item.brand,
+        price: item.price,
+        salePrice: item.sale,
+        stock: 10 + Math.floor(Math.random() * 40),
+        rating: Number((4 + Math.random()).toFixed(1)),
+        reviewCount: 50 + Math.floor(Math.random() * 400),
+        description: `${item.name} là sản phẩm công nghệ cao cấp. Thiết kế hiện đại, hiệu năng mạnh mẽ.`,
+        specs: JSON.stringify({
+          'Thương hiệu': item.brand,
+          'Bảo hành': '12 tháng',
+          'Xuất xứ': 'Chính hãng',
+          'Tình trạng': 'Mới 100%',
+        }),
+        images,
+        isFeatured: item.featured,
+        isBestSeller: item.best,
+        status: 'active',
+      },
+    });
+  }
+}
+
 async function main() {
+  const force = process.argv.includes('--force');
+
+  if (!force) {
+    const existingUsers = await prisma.user.count();
+    if (existingUsers > 0) {
+      if (process.env.NODE_ENV !== 'production') {
+        await seedMissingDevelopmentData();
+      }
+      await seedCoupons();
+      await seedReviews();
+      console.log(
+        `Database đã có ${existingUsers} user — giữ nguyên dữ liệu hiện có và chỉ bổ sung dữ liệu mẫu còn thiếu. Dùng npm run db:seed:force nếu muốn xóa và seed lại.`
+      );
+      return;
+    }
+  }
+
+  await prisma.review.deleteMany();
   await prisma.order.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.coupon.deleteMany();
 
   const passwordAdmin = await bcrypt.hash('admin123', 10);
   const passwordUser = await bcrypt.hash('123456', 10);
@@ -179,6 +336,8 @@ async function main() {
       total: p1.salePrice ?? p1.price,
       status: 'delivered',
       paymentMethod: 'cod',
+      paymentStatus: 'paid',
+      paidAt: new Date(),
       shippingInfo: JSON.stringify({
         fullName: user.fullName,
         phone: user.phone,
@@ -246,6 +405,11 @@ async function main() {
         total: price,
         status: statuses[i % statuses.length],
         paymentMethod: i % 2 === 0 ? 'cod' : 'transfer',
+        ...(statuses[i % statuses.length] === 'delivered'
+          ? { paymentStatus: 'paid' as const, paidAt: new Date() }
+          : statuses[i % statuses.length] === 'shipping' && i % 2 !== 0
+            ? { paymentStatus: 'paid' as const, paidAt: new Date() }
+            : {}),
         shippingInfo: JSON.stringify({
           fullName: user.fullName,
           phone: user.phone,
@@ -258,11 +422,16 @@ async function main() {
     });
   }
 
+  await seedCoupons();
+  await seedReviews();
+
   console.log('Seed OK:', {
     users: await prisma.user.count(),
     categories: await prisma.category.count(),
     products: await prisma.product.count(),
     orders: await prisma.order.count(),
+    coupons: await prisma.coupon.count(),
+    reviews: await prisma.review.count(),
     admin: admin.email,
   });
 }

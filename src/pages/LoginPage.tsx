@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function LoginPage() {
+  usePageTitle('Đăng nhập');
   const { login } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -59,7 +61,12 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
+              <Link to="/quen-mat-khau" className="text-xs text-blue-600 hover:underline">
+                Quên mật khẩu?
+              </Link>
+            </div>
             <input
               type="password"
               value={password}
@@ -84,12 +91,6 @@ export default function LoginPage() {
             </Link>
           </div>
         </form>
-
-        <div className="mt-6 bg-blue-50 rounded-xl p-4 text-sm text-blue-800">
-          <p className="font-medium mb-1">Tài khoản demo:</p>
-          <p>User: user@gmail.com / 123456</p>
-          <p>Admin: admin@gmail.com / admin123</p>
-        </div>
       </div>
     </div>
   );

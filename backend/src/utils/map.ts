@@ -11,6 +11,14 @@ export function mapOrder(o: any) {
     ...o,
     items: safeJson(o.items, []),
     shippingInfo: safeJson(o.shippingInfo, {}),
+    statusLogs: Array.isArray(o.statusLogs)
+      ? o.statusLogs.map((log: any) => ({
+          id: log.id,
+          status: log.status,
+          changedBy: log.changedBy,
+          createdAt: log.createdAt,
+        }))
+      : [],
   };
 }
 

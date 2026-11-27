@@ -2,24 +2,33 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { usePageTitle } from '../hooks/usePageTitle';
+import { isValidVietnamPhone } from '../utils/phone';
 
 export default function RegisterPage() {
+  usePageTitle('Đăng ký');
   const { register } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', password: '', confirm: '' });
   const [error, setError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setPhoneError('');
     if (form.password !== form.confirm) {
       setError('Mật khẩu xác nhận không khớp');
       return;
     }
     if (form.password.length < 6) {
       setError('Mật khẩu phải có ít nhất 6 ký tự');
+      return;
+    }
+    if (form.phone && !isValidVietnamPhone(form.phone)) {
+      setPhoneError('Số điện thoại không hợp lệ');
       return;
     }
     setLoading(true);
@@ -34,7 +43,11 @@ export default function RegisterPage() {
       showToast('Đăng ký thành công!', 'success');
       navigate('/');
     } else {
-      setError(result.message || 'Đăng ký thất bại');
+      if (result.message === 'Số điện thoại đã được sử dụng') {
+        setPhoneError(result.message);
+      } else {
+        setError(result.message || 'Đăng ký thất bại');
+      }
     }
   };
 
@@ -60,9 +73,19 @@ export default function RegisterPage() {
                 type={f.type}
                 required
                 value={(form as any)[f.key]}
-                onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setForm({ ...form, [f.key]: e.target.value });
+                  if (f.key === 'phone') setPhoneError('');
+                }}
+                className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                  f.key === 'phone' && phoneError
+                    ? 'border-red-400 focus:ring-red-200'
+                    : 'border-gray-200 focus:ring-blue-500'
+                }`}
               />
+              {f.key === 'phone' && phoneError && (
+                <p className="mt-1 text-sm text-red-600">{phoneError}</p>
+              )}
             </div>
           ))}
           <button

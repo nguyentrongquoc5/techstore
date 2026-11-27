@@ -9,5 +9,6 @@ RUN npx prisma generate
 RUN mkdir -p prisma/data public/images/products
 ENV DATABASE_URL="file:./data/prod.db"
 ENV PORT=4000
+ENV NODE_ENV=production
 EXPOSE 4000
 CMD sh -c "mkdir -p prisma/data && npx prisma db push && npx tsx prisma/seed.ts && npx tsx src/index.ts"

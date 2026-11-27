@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Order, CartItem, OrderItem } from '../types';
+import type { Order, CartItem, OrderItem, Paginated } from '../types';
 
 const CART_KEY = 'techstore_cart';
 
@@ -16,28 +16,28 @@ export const orderService = {
     localStorage.setItem(CART_KEY, JSON.stringify(items));
   },
 
-  addToCart(productId: string, quantity = 1) {
+  addToCart(productId: string, quantity = 1, variantId?: string) {
     const cart = this.getCart();
-    const existing = cart.find((i) => i.productId === productId);
+    const existing = cart.find((i) => i.productId === productId && i.variantId === variantId);
     if (existing) existing.quantity += quantity;
-    else cart.push({ productId, quantity });
+    else cart.push({ productId, variantId, quantity });
     this.setCart(cart);
     return cart;
   },
 
-  updateCartQuantity(productId: string, quantity: number) {
+  updateCartQuantity(productId: string, quantity: number, variantId?: string) {
     let cart = this.getCart();
-    if (quantity <= 0) cart = cart.filter((i) => i.productId !== productId);
+    if (quantity <= 0) cart = cart.filter((i) => !(i.productId === productId && i.variantId === variantId));
     else {
-      const item = cart.find((i) => i.productId === productId);
+      const item = cart.find((i) => i.productId === productId && i.variantId === variantId);
       if (item) item.quantity = quantity;
     }
     this.setCart(cart);
     return cart;
   },
 
-  removeFromCart(productId: string) {
-    const cart = this.getCart().filter((i) => i.productId !== productId);
+  removeFromCart(productId: string, variantId?: string) {
+    const cart = this.getCart().filter((i) => !(i.productId === productId && i.variantId === variantId));
     this.setCart(cart);
     return cart;
   },
@@ -50,8 +50,17 @@ export const orderService = {
     return api<Order[]>('/orders/my');
   },
 
-  getAllOrders() {
-    return api<Order[]>('/orders');
+  getById(id: string) {
+    return api<Order>(`/orders/${id}`);
+  },
+
+  getAllOrders(params?: Record<string, string>) {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return api<Paginated<Order>>(`/orders${qs}`);
+  },
+
+  cancelOrder(id: string) {
+    return api<Order>(`/orders/${id}/cancel`, { method: 'POST' });
   },
 
   createOrder(data: {
@@ -60,16 +69,32 @@ export const orderService = {
     discount: number;
     shippingFee: number;
     total: number;
-    paymentMethod: 'cod' | 'transfer';
+    paymentMethod: 'cod' | 'transfer' | 'vnpay' | 'momo';
     shippingInfo: Order['shippingInfo'];
+    couponCode?: string;
   }) {
-    return api<Order>('/orders', { method: 'POST', body: JSON.stringify(data) });
+    return api<Order>('/orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        items: data.items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
+        paymentMethod: data.paymentMethod,
+        shippingInfo: data.shippingInfo,
+        couponCode: data.couponCode || undefined,
+      }),
+    });
   },
 
   updateStatus(id: string, status: string) {
     return api<Order>(`/orders/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
+    });
+  },
+
+  updatePayment(id: string, paymentStatus: 'paid' | 'unpaid') {
+    return api<Order>(`/orders/${id}/payment`, {
+      method: 'PATCH',
+      body: JSON.stringify({ paymentStatus }),
     });
   },
 };

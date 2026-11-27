@@ -5,8 +5,10 @@ import ProductCard from '../components/product/ProductCard';
 import Loading from '../components/common/Loading';
 import { productService } from '../services/productService';
 import type { Product, Category } from '../types';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function HomePage() {
+  usePageTitle('Trang chủ');
   const [featured, setFeatured] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
